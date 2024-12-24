@@ -198,6 +198,11 @@ public class PlayerController : MonoBehaviour
         {
             GameManager.Instance.LoseGame();
         }
+        else if (collider.CompareTag("Collectible"))
+        {
+            GameManager.Instance.CoinCollected();
+            Destroy(collider.gameObject);
+        }
     }
 
     void OnTriggerStay(Collider collider)

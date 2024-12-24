@@ -25,7 +25,6 @@ public class GameManager : MonoBehaviour
 
     int coinsCollected = 0;
 
-
     void Start()
     {
         winPanel.SetActive(false);
@@ -35,6 +34,11 @@ public class GameManager : MonoBehaviour
     public void StartGame()
     {
         stopWatch.StartStopwatch();
+    }
+
+    public void CoinCollected ()
+    {
+        coinsCollected++;
     }
 
     #region Win/Lose
