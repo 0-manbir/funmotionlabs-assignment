@@ -8,17 +8,24 @@ public class Obstacles : MonoBehaviour
     [Header("Properties")]
     [SerializeField] float speed;
     [SerializeField] float amplitude;
+    [SerializeField] float rotateSpeed;
+
+    Vector3 previousPosition;
+    Vector3 platformVelocity;
 
     void Update ()
     {
         switch (obstacleType)
         {
             case Obstacle.MoveLeftRight:
-                transform.position += Mathf.Sin(Time.time * speed) * amplitude * Vector3.forward;
-                break;
             case Obstacle.MoveUpDown:
+                Vector3 newPosition = transform.position + Mathf.Sin(Time.time * speed) * amplitude * (obstacleType == Obstacle.MoveLeftRight ? transform.forward : transform.up);
+                platformVelocity = (newPosition - previousPosition) / Time.deltaTime;
+                transform.position = newPosition;
+                previousPosition = newPosition;
                 break;
             case Obstacle.Rotate:
+                transform.Rotate(rotateSpeed * Time.deltaTime * Vector3.up);
                 break;
 
             default:
@@ -26,9 +33,12 @@ public class Obstacles : MonoBehaviour
                 break;
         }
     }
+
+    public Obstacle ObstacleType { get { return obstacleType; } }
+    public Vector3 PlatformVelocity { get { return platformVelocity; } }
 }
 
-enum Obstacle
+public enum Obstacle
 {
     MoveLeftRight,
     MoveUpDown,

@@ -17,5 +17,5 @@ MonoBehaviour:
   maxHeight: 4
   enableTargetMatching: 1
   partToMatch: 5
-  matchStartPercentage: 0
-  matchEndPercentage: 0.6
+  matchStartPercentage: 0.129
+  matchEndPercentage: 0.3

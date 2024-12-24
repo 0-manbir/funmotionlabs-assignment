@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 1908fa4d3ac040042a629992ca8231ee
+guid: 28f663e42f7115646bd1cee0e2352610
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
@@ -33,11 +33,11 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: Climb
+      name: climb
       takeName: mixamo.com
       internalID: -203655887218126122
-      firstFrame: 0
-      lastFrame: 88
+      firstFrame: 26
+      lastFrame: 98
       wrapMode: 0
       orientationOffsetY: 0
       level: 0

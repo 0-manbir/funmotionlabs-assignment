@@ -44,4 +44,7 @@ public class StopWatch : MonoBehaviour
 
         return string.Format("{0:00}:{1:00}:{2:000}", minutes, seconds, milliseconds);
     }
+
+    public float GetTime { get { return time; } }
+    public string GetFormattedTime { get { return FormatTime(time); } }
 }

@@ -4,6 +4,8 @@ using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
+    #region Singleton
+
     public static PlayerController Instance;
 
     void Awake ()
@@ -14,8 +16,9 @@ public class PlayerController : MonoBehaviour
             Destroy(gameObject);
     }
 
+    #endregion
+
     CharacterController cc;
-    ParkourSystem parkourSystem;
     Animator anim;
 
     [SerializeField] float playerSpeed;
@@ -50,12 +53,13 @@ public class PlayerController : MonoBehaviour
     bool isSliding = false;
     bool isJumping = false;
 
+    Vector3 platformVelocity;
+
     bool hasControl = true;
 
     void Start ()
     {
         cc = GetComponent<CharacterController>();
-        parkourSystem = GetComponent<ParkourSystem>();
         anim = GetComponent<Animator>();
 
         sprintRemaining = sprintDuration;
@@ -77,6 +81,8 @@ public class PlayerController : MonoBehaviour
         isSprinting = Input.GetKey(KeyCode.LeftShift) && sprintRemaining > 0f && !isSprintCooldown;
     }
 
+    #region Movement
+
     void CheckGround()
     {
         isGrounded = Physics.CheckSphere(groundCheck.position, groundCheckRadius, groundLayer);
@@ -89,6 +95,8 @@ public class PlayerController : MonoBehaviour
         float v = Input.GetAxis("Vertical");
 
         Vector3 moveDir = (transform.forward * v + transform.right * h).normalized;
+
+        if (moveDir == Vector3.zero) isSprinting = false;
 
         // Sliding
         if (Input.GetKeyDown(KeyCode.C) && !isSliding && !isJumping && moveDir != Vector3.zero)
@@ -114,6 +122,10 @@ public class PlayerController : MonoBehaviour
 
         cc.Move(velocity * Time.deltaTime);
     }
+
+    #endregion
+
+    #region Sprinting
 
     void Sprint()
     {
@@ -143,6 +155,10 @@ public class PlayerController : MonoBehaviour
         float sprintRemainingPercent = sprintRemaining / sprintDuration;
         sprintBar.size = sprintRemainingPercent;
     }
+
+    #endregion
+
+    #region Sliding
     
     IEnumerator Slide()
     {
@@ -159,6 +175,52 @@ public class PlayerController : MonoBehaviour
 
         Move();
     }
+
+    #endregion
+
+    #region Collisions Manager
+
+    void OnTriggerEnter(Collider collider)
+    {
+        if (collider.CompareTag("MovingPlatform"))
+        {
+            Obstacles platform = collider.GetComponent<Obstacles>();
+            platformVelocity = platform.PlatformVelocity;
+
+            // set the player as a child of the platform
+            transform.SetParent(collider.transform);
+        }
+        else if (collider.CompareTag("FinishLine"))
+        {
+            GameManager.Instance.WinGame();
+        }
+        else if (collider.CompareTag("Void"))
+        {
+            GameManager.Instance.LoseGame();
+        }
+    }
+
+    void OnTriggerStay(Collider collider)
+    {
+        if (collider.CompareTag("MovingPlatform"))
+        {
+            Obstacles platform = collider.GetComponent<Obstacles>();
+
+            platformVelocity = platform.PlatformVelocity;
+            GetComponent<CharacterController>().Move(platformVelocity * Time.deltaTime);
+        }
+    }
+
+    void OnTriggerExit(Collider collider)
+    {
+        if (collider.CompareTag("MovingPlatform"))
+        {
+            transform.SetParent(null);
+            platformVelocity = Vector3.zero;
+        }
+    }
+
+    #endregion
 
     public void SetControl(bool hasControl)
     {
