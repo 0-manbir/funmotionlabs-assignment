@@ -1,28 +1,90 @@
+using System.Collections;
 using UnityEngine;
 
 public class ParkourSystem : MonoBehaviour
 {
-    [Header("Obstacles")]
-    [SerializeField] LayerMask obstaclesMask;
-    [SerializeField] float rayOffsetY = 2.5f;
-    [SerializeField] float rayDistance = 0.75f;
+    Animator animator;
+    PlayerController playerController;
+    ObstacleDetector obstacleDetector;
+    ObstacleData obstacleData;
+
+    [Header("Actions")]
+    [SerializeField] ParkourAction[] parkourActions;
+
+    bool isJumping;
+
+    public bool CanPerformAction { get; set; }
 
     void Start()
     {
-
+        animator = GetComponent<Animator>();
+        playerController = GetComponent<PlayerController>();
+        obstacleDetector = GetComponent<ObstacleDetector>();
     }
 
     void Update()
     {
-        CheckObstacles();
+        CanPerformAction = true;
+
+        if (!isJumping && Input.GetButtonDown("Jump"))
+        {
+            obstacleData = obstacleDetector.GetObstaclesData();
+
+            if (obstacleData.forwardHit)
+            {
+                foreach (ParkourAction parkourAction in parkourActions)
+                {
+                    if (parkourAction.IsActionPossible(obstacleData, transform))
+                    {
+                        StartCoroutine(HasJumped(parkourAction));
+                        break;
+                    }
+                }
+
+                CanPerformAction = false;
+            }
+            else
+            {
+                // Jump Up
+                playerController.IsJumping = true;
+                animator.SetBool("isJumping", true);
+                animator.Play("Jump");
+            }
+        }
     }
 
-    void CheckObstacles()
+    IEnumerator HasJumped(ParkourAction parkourAction)
     {
-        Vector3 rayOrigin = transform.position + rayOffsetY * Vector3.up;
+        isJumping = true;
+        playerController.SetControl(false);
 
-        bool isObstacle = Physics.Raycast(rayOrigin, transform.forward, out RaycastHit hitInfo, rayDistance, obstaclesMask);
+        animator.Play(parkourAction.Name);
+        animator.applyRootMotion = true;
+        yield return null;
 
-        Debug.DrawRay(rayOrigin, transform.forward, isObstacle ? Color.red : Color.white);
+        float animationDuration = animator.GetCurrentAnimatorStateInfo(0).length;
+        float timer = 0f;
+
+        while (timer < animationDuration)
+        {
+            timer += Time.deltaTime;
+
+            if (parkourAction.EnableTargetMatching)
+                MatchTarget(parkourAction);
+
+            yield return null;
+        }
+
+        isJumping = false;
+        animator.applyRootMotion = false;
+        playerController.SetControl(true);
+    }
+
+    void MatchTarget(ParkourAction parkourAction)
+    {
+        if (animator.isMatchingTarget)
+            return;
+            
+        animator.MatchTarget(parkourAction.MatchPos, transform.rotation, parkourAction.PartToMatch, new MatchTargetWeightMask(Vector3.up, 0), parkourAction.MatchStartTime, parkourAction.MatchTargetTime);
     }
 }
